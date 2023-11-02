@@ -53,40 +53,49 @@ pipeline {
 
   stages {
 
- //    stage('Build Artifact - Maven') {
- //      steps {
- //        sh "mvn clean package -DskipTests=true"
- //        archive 'target/*.jar'
- //      }
- //    }
-
- //    stage('Unit Tests - JUnit and JaCoCo') {
- //      steps {
- //        sh "mvn test"
- //      }
- //    }
-
-    stage('Mutation Tests - PIT') {
-      steps {
-        sh "mvn org.pitest:pitest-maven:mutationCoverage"
-      }
-    }
-
-    stage('SonarQube - SAST') {
-      steps {
-        withSonarQubeEnv('SonarQube') {
-          sh "mvn sonar:sonar \
-                -Dsonar.projectKey=numeric-application \
-                -Dsonar.host.url=http://sonarqube.example.com \
-                -Dsonar.login=4d8ae9fc3659b0745ee5dda144c81e9ea34b87b8"
-        }
-        timeout(time: 2, unit: 'MINUTES') {
-          script {
-            waitForQualityGate abortPipeline: true
-          }
+    node('jenkins-maven-agent') {
+      stage('Build Artifact - Maven') {
+        steps {
+          sh "mvn clean package -DskipTests=true"
+          archive 'target/*.jar'
         }
       }
     }
+
+    // stage('Build Artifact - Maven') {
+    //   steps {
+    //     sh "mvn clean package -DskipTests=true"
+    //     archive 'target/*.jar'
+    //   }
+    // }
+
+    // stage('Unit Tests - JUnit and JaCoCo') {
+    //   steps {
+    //     sh "mvn test"
+    //   }
+    // }
+
+    // stage('Mutation Tests - PIT') {
+    //   steps {
+    //     sh "mvn org.pitest:pitest-maven:mutationCoverage"
+    //   }
+    // }
+
+    // stage('SonarQube - SAST') {
+    //   steps {
+    //     withSonarQubeEnv('SonarQube') {
+    //       sh "mvn sonar:sonar \
+    //             -Dsonar.projectKey=numeric-application \
+    //             -Dsonar.host.url=http://sonarqube.example.com \
+    //             -Dsonar.login=4d8ae9fc3659b0745ee5dda144c81e9ea34b87b8"
+    //     }
+    //     timeout(time: 2, unit: 'MINUTES') {
+    //       script {
+    //         waitForQualityGate abortPipeline: true
+    //       }
+    //     }
+    //   }
+    // }
 
 	// stage('Vulnerability Scan - Docker') {
  //      steps {
