@@ -98,8 +98,7 @@ pipeline {
           container('maven') {
             sh "mvn sonar:sonar \
               -Dsonar.projectKey=numeric-application \
-              -Dsonar.host.url=http://sonarqube.example.com \
-              -Dsonar.login=4d8ae9fc3659b0745ee5dda144c81e9ea34b87b8"
+              -Dsonar.host.url=http://sonarqube.example.com"
           }
         }
         timeout(time: 2, unit: 'MINUTES') {
