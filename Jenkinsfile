@@ -40,7 +40,9 @@ List<Map> getFailedStages( RunWrapper build ) {
 /////// ******************************* Code for fectching Failed Stage Name ******************************* ///////
 
 pipeline {
-  agent any
+  agent {
+    label 'jenkins-maven-agent'
+  }
 
   environment {
     deploymentName = "devsecops"
