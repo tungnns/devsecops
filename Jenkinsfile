@@ -48,7 +48,7 @@ pipeline {
         spec:
           containers:
           - name: maven
-            image: maven:3.8.1-jdk-11
+            image: maven:3.9.5-eclipse-temurin-8-alpine
             command:
               - cat
             tty: true
