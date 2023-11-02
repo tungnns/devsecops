@@ -115,10 +115,10 @@ def call(String buildStatus = 'STARTED') {
             [
               "type": "mrkdwn",
               "text": "*Git Commit:*\n${GIT_COMMIT}"
-            ],
-            [
-              "type": "mrkdwn",
-              "text": "*GIT Previous Success Commit:*\n${GIT_PREVIOUS_SUCCESSFUL_COMMIT}"
+            // ],
+            // [
+            //   "type": "mrkdwn",
+            //   "text": "*GIT Previous Success Commit:*\n${GIT_PREVIOUS_SUCCESSFUL_COMMIT}"
             ]
           ], 
           "accessory": [
