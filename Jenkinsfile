@@ -92,37 +92,41 @@ pipeline {
       }
     }
 
-    // stage('SonarQube - SAST') {
-    //   steps {
-    //     withSonarQubeEnv('SonarQube') {
-    //       sh "mvn sonar:sonar \
-    //         -Dsonar.projectKey=numeric-application \
-    //         -Dsonar.host.url=http://sonarqube.example.com \
-    //         -Dsonar.login=4d8ae9fc3659b0745ee5dda144c81e9ea34b87b8"
-    //     }
-    //     timeout(time: 2, unit: 'MINUTES') {
-    //       script {
-    //         waitForQualityGate abortPipeline: true
-    //       }
-    //     }
-    //   }
-    // }
+    stage('SonarQube - SAST') {
+      steps {
+        withSonarQubeEnv('SonarQube') {
+          container('maven') {
+            sh "mvn sonar:sonar \
+              -Dsonar.projectKey=numeric-application \
+              -Dsonar.host.url=http://sonarqube.example.com \
+              -Dsonar.login=4d8ae9fc3659b0745ee5dda144c81e9ea34b87b8"
+          }
+        }
+        timeout(time: 2, unit: 'MINUTES') {
+          script {
+            waitForQualityGate abortPipeline: true
+          }
+        }
+      }
+    }
 
-	// stage('Vulnerability Scan - Docker') {
- //      steps {
- //        parallel(
- //        	"Dependency Scan": {
- //        		sh "mvn dependency-check:check"
-	// 		},
-	// 		"Trivy Scan":{
-	// 			sh "bash trivy-docker-image-scan.sh"
-	// 		},
-	// 		"OPA Conftest":{
-	// 			sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-docker-security.rego Dockerfile'
-	// 		}   	
- //      	)
- //      }
- //    }
+    stage('Vulnerability Scan - Docker') {
+      steps {
+        parallel(
+          "Dependency Scan": {
+            container('maven') {
+              sh "mvn dependency-check:check"
+            }
+          },
+          "Trivy Scan":{
+            sh "bash trivy-docker-image-scan.sh"
+          },
+          "OPA Conftest":{
+            sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-docker-security.rego Dockerfile'
+          }   	
+        )
+      }
+    }
     
 
  //    stage('Docker Build and Push') {
