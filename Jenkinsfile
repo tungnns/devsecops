@@ -69,7 +69,7 @@ pipeline {
         container('maven') {
           // sh "mvn clean package -DskipTests=true"
           // archive 'target/*.jar'
-          sh "mvn --version"
+          sh "echo Helloworld"
         }
       }
     }
