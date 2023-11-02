@@ -94,16 +94,16 @@ pipeline {
 
     stage('SonarQube - SAST') {
       steps {
-        withSonarQubeEnv('SonarQube') {
-          container('maven') {
+        container('maven') {
+          withSonarQubeEnv('SonarQube') {
             sh "mvn sonar:sonar \
               -Dsonar.projectKey=numeric-application \
               -Dsonar.host.url=http://sonarqube-sonarqube-lts.sonarqube.svc.cluster.local"
           }
-        }
-        timeout(time: 2, unit: 'MINUTES') {
-          script {
-            waitForQualityGate abortPipeline: true
+          timeout(time: 2, unit: 'MINUTES') {
+            script {
+              waitForQualityGate abortPipeline: true
+            }
           }
         }
       }
