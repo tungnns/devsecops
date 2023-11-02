@@ -41,7 +41,7 @@ List<Map> getFailedStages( RunWrapper build ) {
 
 pipeline {
   agent {
-    label 'jenkins-maven-agent'
+    label 'jenkins-jenkins-agent'
   }
 
   environment {
