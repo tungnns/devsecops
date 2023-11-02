@@ -67,8 +67,9 @@ pipeline {
     stage('Build Artifact - Maven') {
       steps {
         container('maven') {
-          sh "mvn clean package -DskipTests=true"
-          archive 'target/*.jar'
+          // sh "mvn clean package -DskipTests=true"
+          // archive 'target/*.jar'
+          sh "mvn --version"
         }
       }
     }
