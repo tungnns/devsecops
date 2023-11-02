@@ -53,7 +53,7 @@ pipeline {
 
   stages {
 
-    node('jenkins-maven-agent') {
+    node(jenkins-maven-agent) {
       stage('Build Artifact - Maven') {
         steps {
           sh "mvn clean package -DskipTests=true"
