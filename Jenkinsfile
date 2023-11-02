@@ -49,6 +49,9 @@ pipeline {
           containers:
           - name: maven
             image: maven:3.8.1-jdk-11
+            command:
+              - cat
+            tty: true
         '''
     }
   }
@@ -67,9 +70,8 @@ pipeline {
     stage('Build Artifact - Maven') {
       steps {
         container('maven') {
-          // sh "mvn clean package -DskipTests=true"
-          // archive 'target/*.jar'
-          sh "echo Helloworld"
+          sh "mvn clean package -DskipTests=true"
+          archive 'target/*.jar'
         }
       }
     }
