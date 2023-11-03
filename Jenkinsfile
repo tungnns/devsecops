@@ -97,10 +97,10 @@ pipeline {
     stage('SonarQube - SAST') {
       steps {
         container('maven') {
-          withSonarQubeEnv('SonarQube') {
+          withSonarQubeEnv(credentialsId: 'sonarqube-token', installationName: 'sonarqube') {
             sh "mvn sonar:sonar \
-              -Dsonar.projectKey=numeric-application \
-              -Dsonar.host.url=http://sonarqube-sonarqube-lts.sonarqube.svc.cluster.local"
+              -Dsonar.projectKey=numeric-application" 
+              // -Dsonar.host.url=http://sonarqube-sonarqube-lts.sonarqube.svc.cluster.local"
           }
           timeout(time: 2, unit: 'MINUTES') {
             script {
