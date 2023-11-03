@@ -52,7 +52,7 @@ pipeline {
             command:
               - sleep
             args:
-              - 5s
+              - 99d
             tty: true
         '''
     }
