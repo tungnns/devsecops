@@ -140,117 +140,117 @@ pipeline {
           "Kubesec Scan": {
             sh "bash kubesec-scan.sh"
           },
-          "Trivy Scan": {
-            sh "bash trivy-k8s-scan.sh"
+          // "Trivy Scan": {
+          //   sh "bash trivy-k8s-scan.sh"
+          // }
+        )
+      }
+    }
+
+    stage('K8S Deployment - DEV') {
+      steps {
+        parallel(
+          "Deployment": {
+            withKubeConfig([credentialsId: 'kubeconfig']) {
+              sh "bash k8s-deployment.sh"
+            }
+          },
+          "Rollout Status": {
+            withKubeConfig([credentialsId: 'kubeconfig']) {
+              sh "bash k8s-deployment-rollout-status.sh"
+            }
           }
         )
       }
     }
 
- //    stage('K8S Deployment - DEV') {
- //      steps {
- //        parallel(
- //          "Deployment": {
- //            withKubeConfig([credentialsId: 'kubeconfig']) {
- //              sh "bash k8s-deployment.sh"
- //            }
- //          },
- //          "Rollout Status": {
- //            withKubeConfig([credentialsId: 'kubeconfig']) {
- //              sh "bash k8s-deployment-rollout-status.sh"
- //            }
- //          }
- //        )
- //      }
- //    }
+    stage('Integration Tests - DEV') {
+      steps {
+        script {
+          try {
+            withKubeConfig([credentialsId: 'kubeconfig']) {
+              sh "bash integration-test.sh"
+            }
+          } catch (e) {
+            withKubeConfig([credentialsId: 'kubeconfig']) {
+              sh "kubectl -n default rollout undo deploy ${deploymentName}"
+            }
+            throw e
+          }
+        }
+      }
+    }
 
- //    stage('Integration Tests - DEV') {
- //      steps {
- //        script {
- //          try {
- //            withKubeConfig([credentialsId: 'kubeconfig']) {
- //              sh "bash integration-test.sh"
- //            }
- //          } catch (e) {
- //            withKubeConfig([credentialsId: 'kubeconfig']) {
- //              sh "kubectl -n default rollout undo deploy ${deploymentName}"
- //            }
- //            throw e
- //          }
- //        }
- //      }
- //    }
+   stage('OWASP ZAP - DAST') {
+      steps {
+        withKubeConfig([credentialsId: 'kubeconfig']) {
+          sh 'bash zap.sh'
+        }
+      }
+    }
 
- //   stage('OWASP ZAP - DAST') {
- //      steps {
- //        withKubeConfig([credentialsId: 'kubeconfig']) {
- //          sh 'bash zap.sh'
- //        }
- //      }
- //    }
+    stage('Prompte to PROD?') {
+      steps {
+        timeout(time: 2, unit: 'DAYS') {
+          input 'Do you want to Approve the Deployment to Production Environment/Namespace?'
+        }
+      }
+    }
 
- //    stage('Prompte to PROD?') {
- //      steps {
- //        timeout(time: 2, unit: 'DAYS') {
- //          input 'Do you want to Approve the Deployment to Production Environment/Namespace?'
- //        }
- //      }
- //    }
+    stage('K8S CIS Benchmark') {
+      steps {
+        script {
 
- //    stage('K8S CIS Benchmark') {
- //      steps {
- //        script {
+          parallel(
+            "Master": {
+              sh "bash cis-master.sh"
+            },
+            "Etcd": {
+              sh "bash cis-etcd.sh"
+            },
+            "Kubelet": {
+              sh "bash cis-kubelet.sh"
+            }
+          )
 
- //          parallel(
- //            "Master": {
- //              sh "bash cis-master.sh"
- //            },
- //            "Etcd": {
- //              sh "bash cis-etcd.sh"
- //            },
- //            "Kubelet": {
- //              sh "bash cis-kubelet.sh"
- //            }
- //          )
+        }
+      }
+    }
 
- //        }
- //      }
- //    }
+    stage('K8S Deployment - PROD') {
+      steps {
+        parallel(
+          "Deployment": {
+            withKubeConfig([credentialsId: 'kubeconfig']) {
+              sh "sed -i 's#replace#${imageName}#g' k8s_PROD-deployment_service.yaml"
+              sh "kubectl -n prod apply -f k8s_PROD-deployment_service.yaml"
+            }
+          },
+          "Rollout Status": {
+            withKubeConfig([credentialsId: 'kubeconfig']) {
+              sh "bash k8s-PROD-deployment-rollout-status.sh"
+            }
+          }
+        )
+      }
+    }
 
- //    stage('K8S Deployment - PROD') {
- //      steps {
- //        parallel(
- //          "Deployment": {
- //            withKubeConfig([credentialsId: 'kubeconfig']) {
- //              sh "sed -i 's#replace#${imageName}#g' k8s_PROD-deployment_service.yaml"
- //              sh "kubectl -n prod apply -f k8s_PROD-deployment_service.yaml"
- //            }
- //          },
- //          "Rollout Status": {
- //            withKubeConfig([credentialsId: 'kubeconfig']) {
- //              sh "bash k8s-PROD-deployment-rollout-status.sh"
- //            }
- //          }
- //        )
- //      }
- //    }
-
- //    stage('Integration Tests - PROD') {
- //      steps {
- //        script {
- //          try {
- //            withKubeConfig([credentialsId: 'kubeconfig']) {
- //              sh "bash integration-test-PROD.sh"
- //            }
- //          } catch (e) {
- //            withKubeConfig([credentialsId: 'kubeconfig']) {
- //              sh "kubectl -n prod rollout undo deploy ${deploymentName}"
- //            }
- //            throw e
- //          }
- //        }
- //      }
- //    }   
+    stage('Integration Tests - PROD') {
+      steps {
+        script {
+          try {
+            withKubeConfig([credentialsId: 'kubeconfig']) {
+              sh "bash integration-test-PROD.sh"
+            }
+          } catch (e) {
+            withKubeConfig([credentialsId: 'kubeconfig']) {
+              sh "kubectl -n prod rollout undo deploy ${deploymentName}"
+            }
+            throw e
+          }
+        }
+      }
+    }   
    
       stage('Testing Slack - 1') {
       steps {
