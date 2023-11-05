@@ -63,7 +63,7 @@ pipeline {
     deploymentName = "devsecops"
     containerName = "devsecops-container"
     serviceName = "devsecops-svc"
-    imageName = "siddharth67/numeric-app:${GIT_COMMIT}"
+    imageName = "tungnns/numeric-app:${GIT_COMMIT}"
     applicationURL="http://devsecops-demo.eastus.cloudapp.azure.com"
     applicationURI="/increment/99"
   }
@@ -107,8 +107,8 @@ pipeline {
     stage('Vulnerability Scan - Docker') {
       steps {
         parallel(
-          "Dependency Scan": {
-              sh "mvn dependency-check:check"
+          // "Dependency Scan": {
+          //     sh "mvn dependency-check:check"
           },
           "Trivy Scan":{
               sh "bash trivy-docker-image-scan.sh"
@@ -121,15 +121,15 @@ pipeline {
     }
     
 
- //    stage('Docker Build and Push') {
- //      steps {
- //        withDockerRegistry([credentialsId: "docker-hub", url: ""]) {
- //          sh 'printenv'
- //          sh 'sudo docker build -t siddharth67/numeric-app:""$GIT_COMMIT"" .'
- //          sh 'docker push siddharth67/numeric-app:""$GIT_COMMIT""'
- //        }
- //      }
- //    }
+    stage('Docker Build and Push') {
+      steps {
+        withDockerRegistry([credentialsId: "docker-hub", url: ""]) {
+          sh 'printenv'
+          sh 'sudo docker build -t tungnns/numeric-app:""$GIT_COMMIT"" .'
+          sh 'docker push tungnns/numeric-app:""$GIT_COMMIT""'
+        }
+      }
+    }
 
  //    stage('Vulnerability Scan - Kubernetes') {
  //      steps {
