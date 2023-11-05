@@ -53,7 +53,7 @@ pipeline {
               - sleep
             args:
               - 99d
-            tty: true
+            tty: true          
         '''
     }
   }
@@ -120,10 +120,14 @@ pipeline {
             }
           },
           "Trivy Scan":{
-            sh "bash trivy-docker-image-scan.sh"
+            node('jenkins-agent-docker') {
+              sh "bash trivy-docker-image-scan.sh"
+            }
           },
           "OPA Conftest":{
-            sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-docker-security.rego Dockerfile'
+            node('jenkins-agent-docker') {
+              sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-docker-security.rego Dockerfile'
+            }            
           }   	
         )
       }
