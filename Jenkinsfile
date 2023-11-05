@@ -41,21 +41,22 @@ List<Map> getFailedStages( RunWrapper build ) {
 
 pipeline {
   agent {
-    kubernetes {
-      yaml '''
-        apiVersion: v1
-        kind: Pod
-        spec:
-          containers:
-          - name: maven
-            image: maven:3.8.6-openjdk-11-slim
-            command:
-              - sleep
-            args:
-              - 99d
-            tty: true          
-        '''
-    }
+    label 'jenkins-agent-docker'
+    // kubernetes {
+    //   yaml '''
+    //     apiVersion: v1
+    //     kind: Pod
+    //     spec:
+    //       containers:
+    //       - name: maven
+    //         image: maven:3.8.6-openjdk-11-slim
+    //         command:
+    //           - sleep
+    //         args:
+    //           - 99d
+    //         tty: true          
+    //     '''
+    // }
   }
 
   environment {
@@ -71,41 +72,33 @@ pipeline {
 
     stage('Build Artifact - Maven') {
       steps {
-        container('maven') {
           sh "mvn clean package -DskipTests=true"
           archive 'target/*.jar'
-        }
       }
     }
 
     stage('Unit Tests - JUnit and JaCoCo') {
       steps {
-        container('maven') {
-          sh "mvn test"
-        }        
+          sh "mvn test"       
       }
     }
 
     stage('Mutation Tests - PIT') {
       steps {
-        container('maven') {
-          sh "mvn org.pitest:pitest-maven:mutationCoverage"
-        }        
+          sh "mvn org.pitest:pitest-maven:mutationCoverage" 
       }
     }
 
     stage('SonarQube - SAST') {
       steps {
-        container('maven') {
-          withSonarQubeEnv(credentialsId: 'sonarqube-token', installationName: 'sonarqube') {
-            sh "mvn sonar:sonar \
-              -Dsonar.projectKey=numeric-application" 
-              // -Dsonar.host.url=http://sonarqube-sonarqube-lts.sonarqube.svc.cluster.local"
-          }
-          timeout(time: 2, unit: 'MINUTES') {
-            script {
-              waitForQualityGate abortPipeline: true
-            }
+        withSonarQubeEnv(credentialsId: 'sonarqube-token', installationName: 'sonarqube') {
+          sh "mvn sonar:sonar \
+            -Dsonar.projectKey=numeric-application" 
+            // -Dsonar.host.url=http://sonarqube-sonarqube-lts.sonarqube.svc.cluster.local"
+        }
+        timeout(time: 2, unit: 'MINUTES') {
+          script {
+            waitForQualityGate abortPipeline: true
           }
         }
       }
@@ -115,19 +108,13 @@ pipeline {
       steps {
         parallel(
           "Dependency Scan": {
-            container('maven') {
               sh "mvn dependency-check:check"
-            }
           },
           "Trivy Scan":{
-            node('jenkins-agent-docker') {
               sh "bash trivy-docker-image-scan.sh"
-            }
           },
           "OPA Conftest":{
-            node('jenkins-agent-docker') {
-              sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-docker-security.rego Dockerfile'
-            }            
+              sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-docker-security.rego Dockerfile'     
           }   	
         )
       }
