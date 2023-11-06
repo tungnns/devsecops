@@ -179,7 +179,7 @@ pipeline {
       steps {
         dir('manifests/numeric') {
           sh "git config --global user.email 'jenkins@ci.com'"
-          sh 'git remote set-url origin https://github.com/tungnns/devsecops-infra.git'
+          sh 'git remote set-url origin https://$GIT_TOKEN@github.com/tungnns/devsecops-infra.git'
           sh 'git checkout main'
           sh 'git add -A'
           sh "git commit -m 'Update image version for commit: $GIT_COMMIT'"
