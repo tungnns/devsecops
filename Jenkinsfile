@@ -177,7 +177,7 @@ pipeline {
 
     stage('Commit & push') {
       steps {
-        dir('manifests/numeric') {
+        dir('devsecops-infra/manifests/numeric') {
           sh "git config --global user.email 'jenkins@ci.com'"
           sh 'git remote set-url origin https://$GIT_TOKEN@github.com/tungnns/devsecops-infra.git'
           sh 'git checkout main'
