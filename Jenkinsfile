@@ -66,6 +66,8 @@ pipeline {
     imageName = "tungnns/numeric-app:${GIT_COMMIT}"
     applicationURL="http://devsecops-demo.eastus.cloudapp.azure.com"
     applicationURI="/increment/99"
+    GIT_TOKEN = credentials('git-token')
+    ARGOCD_TOKEN = credentials('argocd-token')
   }
 
   stages {
@@ -147,110 +149,149 @@ pipeline {
       }
     }
 
-    stage('K8S Deployment - DEV') {
-      steps {
-        parallel(
-          "Deployment": {
-            withKubeConfig([credentialsId: 'kubeconfig']) {
-              sh "bash k8s-deployment.sh"
-            }
-          },
-          "Rollout Status": {
-            withKubeConfig([credentialsId: 'kubeconfig']) {
-              sh "bash k8s-deployment-rollout-status.sh"
-            }
-          }
-        )
-      }
-    }
-
-    stage('Integration Tests - DEV') {
+    stage('Clone/Pull devsecops-infra repo') {
       steps {
         script {
-          try {
-            withKubeConfig([credentialsId: 'kubeconfig']) {
-              sh "bash integration-test.sh"
+          if (fileExists('devsecops-infra')) {
+            echo 'Cloned repository already exist - Pulling latest changes'
+            dir('devsecops-infra') {
+              sh 'git pull'
             }
-          } catch (e) {
-            withKubeConfig([credentialsId: 'kubeconfig']) {
-              sh "kubectl -n default rollout undo deploy ${deploymentName}"
-            }
-            throw e
+          }
+          else {
+            echo 'Repo does not exist - Cloning the repo'
+            sh 'git clone https://github.com/tungnns/devsecops-infra.git'
           }
         }
       }
     }
 
-   stage('OWASP ZAP - DAST') {
+    stage('Update manifest') {
       steps {
-        withKubeConfig([credentialsId: 'kubeconfig']) {
-          sh 'bash zap.sh'
+        dir('manifests/numeric') {
+          sh 'sed -i "s#replace#${imageName}#g" numeric-deployment.yaml'
+          sh 'cat numeric-deployment.yaml'
         }
       }
     }
 
-    stage('Prompte to PROD?') {
+    stage('Commit & push') {
       steps {
-        timeout(time: 2, unit: 'DAYS') {
-          input 'Do you want to Approve the Deployment to Production Environment/Namespace?'
+        dir('manifests/numeric') {
+          sh "git config --global user.email 'jenkins@ci.com'"
+          sh 'git remote set-url origin https://github.com/tungnns/devsecops-infra.git'
+          sh 'git checkout main'
+          sh 'git add -A'
+          sh "git commit -m 'Update image version for commit: $GIT_COMMIT'"
+          sh 'git push origin main'
         }
       }
     }
 
-    stage('K8S CIS Benchmark') {
-      steps {
-        script {
+    // stage('K8S Deployment - DEV') {
+    //   steps {
+    //     parallel(
+    //       "Deployment": {
+    //         withKubeConfig([credentialsId: 'kubeconfig']) {
+    //           sh "bash k8s-deployment.sh"
+    //         }
+    //       },
+    //       "Rollout Status": {
+    //         withKubeConfig([credentialsId: 'kubeconfig']) {
+    //           sh "bash k8s-deployment-rollout-status.sh"
+    //         }
+    //       }
+    //     )
+    //   }
+    // }
 
-          parallel(
-            "Master": {
-              sh "bash cis-master.sh"
-            },
-            "Etcd": {
-              sh "bash cis-etcd.sh"
-            },
-            "Kubelet": {
-              sh "bash cis-kubelet.sh"
-            }
-          )
+  //   stage('Integration Tests - DEV') {
+  //     steps {
+  //       script {
+  //         try {
+  //           withKubeConfig([credentialsId: 'kubeconfig']) {
+  //             sh "bash integration-test.sh"
+  //           }
+  //         } catch (e) {
+  //           withKubeConfig([credentialsId: 'kubeconfig']) {
+  //             sh "kubectl -n default rollout undo deploy ${deploymentName}"
+  //           }
+  //           throw e
+  //         }
+  //       }
+  //     }
+  //   }
 
-        }
-      }
-    }
+  //  stage('OWASP ZAP - DAST') {
+  //     steps {
+  //       withKubeConfig([credentialsId: 'kubeconfig']) {
+  //         sh 'bash zap.sh'
+  //       }
+  //     }
+  //   }
 
-    stage('K8S Deployment - PROD') {
-      steps {
-        parallel(
-          "Deployment": {
-            withKubeConfig([credentialsId: 'kubeconfig']) {
-              sh "sed -i 's#replace#${imageName}#g' k8s_PROD-deployment_service.yaml"
-              sh "kubectl -n prod apply -f k8s_PROD-deployment_service.yaml"
-            }
-          },
-          "Rollout Status": {
-            withKubeConfig([credentialsId: 'kubeconfig']) {
-              sh "bash k8s-PROD-deployment-rollout-status.sh"
-            }
-          }
-        )
-      }
-    }
+  //   stage('Prompte to PROD?') {
+  //     steps {
+  //       timeout(time: 2, unit: 'DAYS') {
+  //         input 'Do you want to Approve the Deployment to Production Environment/Namespace?'
+  //       }
+  //     }
+  //   }
 
-    stage('Integration Tests - PROD') {
-      steps {
-        script {
-          try {
-            withKubeConfig([credentialsId: 'kubeconfig']) {
-              sh "bash integration-test-PROD.sh"
-            }
-          } catch (e) {
-            withKubeConfig([credentialsId: 'kubeconfig']) {
-              sh "kubectl -n prod rollout undo deploy ${deploymentName}"
-            }
-            throw e
-          }
-        }
-      }
-    }   
+  //   stage('K8S CIS Benchmark') {
+  //     steps {
+  //       script {
+
+  //         parallel(
+  //           "Master": {
+  //             sh "bash cis-master.sh"
+  //           },
+  //           "Etcd": {
+  //             sh "bash cis-etcd.sh"
+  //           },
+  //           "Kubelet": {
+  //             sh "bash cis-kubelet.sh"
+  //           }
+  //         )
+
+  //       }
+  //     }
+  //   }
+
+  //   stage('K8S Deployment - PROD') {
+  //     steps {
+  //       parallel(
+  //         "Deployment": {
+  //           withKubeConfig([credentialsId: 'kubeconfig']) {
+  //             sh "sed -i 's#replace#${imageName}#g' k8s_PROD-deployment_service.yaml"
+  //             sh "kubectl -n prod apply -f k8s_PROD-deployment_service.yaml"
+  //           }
+  //         },
+  //         "Rollout Status": {
+  //           withKubeConfig([credentialsId: 'kubeconfig']) {
+  //             sh "bash k8s-PROD-deployment-rollout-status.sh"
+  //           }
+  //         }
+  //       )
+  //     }
+  //   }
+
+  //   stage('Integration Tests - PROD') {
+  //     steps {
+  //       script {
+  //         try {
+  //           withKubeConfig([credentialsId: 'kubeconfig']) {
+  //             sh "bash integration-test-PROD.sh"
+  //           }
+  //         } catch (e) {
+  //           withKubeConfig([credentialsId: 'kubeconfig']) {
+  //             sh "kubectl -n prod rollout undo deploy ${deploymentName}"
+  //           }
+  //           throw e
+  //         }
+  //       }
+  //     }
+  //   }   
    
       stage('Testing Slack - 1') {
       steps {
@@ -267,16 +308,16 @@ pipeline {
   }
 
   post { 
-      //   always { 
-      //     junit 'target/surefire-reports/*.xml'
-      //     jacoco execPattern: 'target/jacoco.exec'
-      //     pitmutation mutationStatsFile: '**/target/pit-reports/**/mutations.xml'
+        always { 
+          junit 'target/surefire-reports/*.xml'
+          jacoco execPattern: 'target/jacoco.exec'
+          pitmutation mutationStatsFile: '**/target/pit-reports/**/mutations.xml'
       //     dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
       //     publishHTML([allowMissing: false, alwaysLinkToLastBuild: true, keepAll: true, reportDir: 'owasp-zap-report', reportFiles: 'zap_report.html', reportName: 'OWASP ZAP HTML Report', reportTitles: 'OWASP ZAP HTML Report'])
         
  		  // //Use sendNotifications.groovy from shared library and provide current build result as parameter 
-      //     sendNotification currentBuild.result
-      //   }
+          sendNotification currentBuild.result
+        }
 
         success {
         	script {
