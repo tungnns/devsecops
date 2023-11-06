@@ -168,7 +168,7 @@ pipeline {
 
     stage('Update manifest') {
       steps {
-        dir('manifests/numeric') {
+        dir('devsecops-infra/manifests/numeric') {
           sh 'sed -i "s#replace#${imageName}#g" numeric-deployment.yaml'
           sh 'cat numeric-deployment.yaml'
         }
