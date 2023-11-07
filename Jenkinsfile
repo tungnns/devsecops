@@ -167,13 +167,6 @@ pipeline {
     }
 
     stage('Update manifest') {
-      // steps {
-      //   dir('devsecops-infra/manifests/numeric') {
-      //     // sh 'sed -i "s#replace#${imageName}#g" numeric-deployment.yaml'
-      //     sh 'sed -i "s#.*image:*.#image: ${imageName}#g" numeric-deployment.yaml'
-      //     sh 'cat numeric-deployment.yaml'
-      //   }
-      // }
       steps {
         dir('devsecops-infra/manifests/numeric') {
           script {
@@ -183,12 +176,7 @@ pipeline {
                     def oldImageName = sh(script: "yq eval '.spec.template.spec.containers[0].image' ${manifestPath}", returnStdout: true).trim()
                     
                     echo "Extracted oldImageName: ${oldImageName}"
-                    
-                    // // Define the new image name
-                    // def newImageName = ${imageName}
-
-                    // echo ${newImageName}
-
+                  
                     // Use sed to replace the image name in the manifest file
                     sh """
                         sed -i 's|${oldImageName}|${imageName}|g' ${manifestPath}
