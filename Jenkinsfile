@@ -117,7 +117,7 @@ pipeline {
           },
           "OPA Conftest":{
               sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-docker-security.rego Dockerfile'     
-          }   	
+          }       
         )
       }
     }
@@ -167,11 +167,31 @@ pipeline {
     }
 
     stage('Update manifest') {
+      // steps {
+      //   dir('devsecops-infra/manifests/numeric') {
+      //     // sh 'sed -i "s#replace#${imageName}#g" numeric-deployment.yaml'
+      //     sh 'sed -i "s#.*image:*.#image: ${imageName}#g" numeric-deployment.yaml'
+      //     sh 'cat numeric-deployment.yaml'
+      //   }
+      // }
       steps {
         dir('devsecops-infra/manifests/numeric') {
-          // sh 'sed -i "s#replace#${imageName}#g" numeric-deployment.yaml'
-          sh 'sed -i "s#image:*#image: ${imageName}#g" numeric-deployment.yaml'
-          sh 'cat numeric-deployment.yaml'
+          script {
+                    def manifestPath = "numeric-deployment.yaml"
+                    
+                    // Use yq to extract the image name
+                    def oldImageName = sh(script: "yq eval '.spec.template.spec.containers[0].image' ${manifestPath}", returnStdout: true).trim()
+                    
+                    echo "Extracted oldImageName: ${oldImageName}"
+                    
+                    // Define the new image name
+                    def newImageName = ${imageName}
+
+                    // Use sed to replace the image name in the manifest file
+                    sh """
+                        sed -i 's|${oldImageName}|${newImageName}|g' ${manifestPath}
+                    """
+          }
         }
       }
     }
@@ -316,17 +336,17 @@ pipeline {
       //     dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
       //     publishHTML([allowMissing: false, alwaysLinkToLastBuild: true, keepAll: true, reportDir: 'owasp-zap-report', reportFiles: 'zap_report.html', reportName: 'OWASP ZAP HTML Report', reportTitles: 'OWASP ZAP HTML Report'])
         
- 		  // //Use sendNotifications.groovy from shared library and provide current build result as parameter 
+           // //Use sendNotifications.groovy from shared library and provide current build result as parameter 
           sendNotification currentBuild.result
         }
 
         success {
-        	script {
-		        /* Use slackNotifier.groovy from shared library and provide current build result as parameter */  
-		        env.failedStage = "none"
-		        env.emoji = ":white_check_mark: :tada: :thumbsup_all:" 
-		        sendNotification currentBuild.result
-		      }
+            script {
+                /* Use slackNotifier.groovy from shared library and provide current build result as parameter */  
+                env.failedStage = "none"
+                env.emoji = ":white_check_mark: :tada: :thumbsup_all:" 
+                sendNotification currentBuild.result
+              }
         }
 
         failure {
@@ -336,7 +356,7 @@ pipeline {
               env.failedStage = failedStages.failedStageName
               env.emoji = ":x: :red_circle: :sos:"
             sendNotification currentBuild.result
-          }	
+          }    
         }
     }
 
