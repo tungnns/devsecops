@@ -170,7 +170,7 @@ pipeline {
       steps {
         dir('devsecops-infra/manifests/numeric') {
           // sh 'sed -i "s#replace#${imageName}#g" numeric-deployment.yaml'
-          sh 'sed -e '/"image:"/s/"[^"]*"/"${imageName}"/g' numeric-deployment.yaml'
+          sh 'sed -e '#"image:"#s#"[^"]*"#"${imageName}"#g' numeric-deployment.yaml'
           sh 'cat numeric-deployment.yaml'
         }
       }
