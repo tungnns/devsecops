@@ -184,14 +184,14 @@ pipeline {
                     
                     echo "Extracted oldImageName: ${oldImageName}"
                     
-                    // Define the new image name
-                    def newImageName = ${imageName}
+                    // // Define the new image name
+                    // def newImageName = ${imageName}
 
-                    echo ${newImageName}
+                    // echo ${newImageName}
 
                     // Use sed to replace the image name in the manifest file
                     sh """
-                        sed -i 's|${oldImageName}|${newImageName}|g' ${manifestPath}
+                        sed -i 's|${oldImageName}|${imageName}|g' ${manifestPath}
                     """
           }
         }
