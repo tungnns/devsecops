@@ -109,9 +109,9 @@ pipeline {
     stage('Vulnerability Scan - Docker') {
       steps {
         parallel(
-          // "Dependency Scan": {
-          //     sh "mvn dependency-check:check"
-          // },
+          "Dependency Scan": {
+              sh "mvn dependency-check:check"
+          },
           "Trivy Scan":{
               sh "bash trivy-docker-image-scan.sh"
           },
@@ -142,9 +142,9 @@ pipeline {
           "Kubesec Scan": {
             sh "bash kubesec-scan.sh"
           },
-          // "Trivy Scan": {
-          //   sh "bash trivy-k8s-scan.sh"
-          // }
+          "Trivy Scan": {
+            sh "bash trivy-k8s-scan.sh"
+          }
         )
       }
     }
@@ -323,7 +323,7 @@ pipeline {
           junit 'target/surefire-reports/*.xml'
           jacoco execPattern: 'target/jacoco.exec'
           pitmutation mutationStatsFile: '**/target/pit-reports/**/mutations.xml'
-      //     dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
+          dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
       //     publishHTML([allowMissing: false, alwaysLinkToLastBuild: true, keepAll: true, reportDir: 'owasp-zap-report', reportFiles: 'zap_report.html', reportName: 'OWASP ZAP HTML Report', reportTitles: 'OWASP ZAP HTML Report'])
         
            // //Use sendNotifications.groovy from shared library and provide current build result as parameter 
