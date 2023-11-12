@@ -62,6 +62,12 @@
 			<artifactId>spring-security-web</artifactId>
 			<version>5.4.11</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+			<version>1.31</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -119,7 +125,7 @@
 			    <version>6.1.6</version>
 			    <configuration>
 			     <format>ALL</format>
-			     <failBuildOnCVSS>10</failBuildOnCVSS> <!-- fail the build for CVSS greater than or equal to 9 -->
+			     <failBuildOnCVSS>9</failBuildOnCVSS> <!-- fail the build for CVSS greater than or equal to 9 -->
 
 			     <!-- 
 			      use internal mirroring of CVE contents 
