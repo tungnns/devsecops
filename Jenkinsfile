@@ -122,23 +122,21 @@ pipeline {
     //   }
     // }
 
-    stages {
-        stage('Vulnerability Scan - Docker') {
-            steps {
-                script {
-                    catchError(buildResult: 'SUCCESS') {
-                        parallel(
-                            "Dependency Scan": {
-                                sh "mvn dependency-check:check"
-                            },
-                            "Trivy Scan": {
-                                sh "bash trivy-docker-image-scan.sh"
-                            },
-                            "OPA Conftest": {
-                                sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-docker-security.rego Dockerfile'
-                            }
-                        )
-                    }
+    stage('Vulnerability Scan - Docker') {
+        steps {
+            script {
+                catchError(buildResult: 'SUCCESS') {
+                    parallel(
+                        "Dependency Scan": {
+                            sh "mvn dependency-check:check"
+                        },
+                        "Trivy Scan": {
+                            sh "bash trivy-docker-image-scan.sh"
+                        },
+                        "OPA Conftest": {
+                            sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-docker-security.rego Dockerfile'
+                        }
+                    )
                 }
             }
         }
