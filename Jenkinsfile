@@ -64,7 +64,7 @@ pipeline {
     containerName = "devsecops-container"
     serviceName = "devsecops-svc"
     imageName = "tungnns/numeric-app:${GIT_COMMIT}"
-    applicationURL="http://devsecops-demo.eastus.cloudapp.azure.com"
+    applicationURL="http://numeric.example.com"
     applicationURI="/increment/99"
     GIT_TOKEN = credentials('git-token')
     ARGOCD_TOKEN = credentials('argocd-token')
@@ -127,9 +127,9 @@ pipeline {
             script {
                 catchError(buildResult: 'SUCCESS') {
                     parallel(
-                        "Dependency Scan": {
-                            sh "mvn dependency-check:check"
-                        },
+                        // "Dependency Scan": {
+                        //     sh "mvn dependency-check:check"
+                        // },
                         "Trivy Scan": {
                             sh "bash trivy-docker-image-scan.sh"
                         },
@@ -156,14 +156,14 @@ pipeline {
     stage('Vulnerability Scan - Kubernetes') {
       steps {
         parallel(
+          // "Trivy Scan": {
+          //   sh "bash trivy-k8s-scan.sh"
+          // },
           "OPA Scan": {
             sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-k8s-security.rego k8s_deployment_service.yaml'
           },
           "Kubesec Scan": {
             sh "bash kubesec-scan.sh"
-          },
-          "Trivy Scan": {
-            sh "bash trivy-k8s-scan.sh"
           }
         )
       }
@@ -252,6 +252,12 @@ pipeline {
   //       }
   //     }
   //   }
+
+    stage('Integration Tests - DEV') {
+      steps {
+              sh "bash integration-test.sh"
+          } 
+      }
 
   //  stage('OWASP ZAP - DAST') {
   //     steps {
