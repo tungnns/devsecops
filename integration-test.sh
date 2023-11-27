@@ -1,7 +1,6 @@
 #!/bin/bash
 
-#integration-test.sh
-
+# Waiting time for application to be deployed on k8s cluster by argocd
 sleep 200s
 
 # PORT=$(kubectl -n default get svc ${serviceName} -o json | jq .spec.ports[].nodePort)
@@ -10,8 +9,8 @@ PORT=80
 echo $PORT
 echo $applicationURL:$PORT/$applicationURI
 
-if [[ ! -z "$PORT" ]];
-then
+# if [[ ! -z "$PORT" ]];
+# then
 
     response=$(curl $applicationURL:$PORT$applicationURI)
     http_code=$(curl -o /dev/null -w "%{http_code}" $applicationURL:$PORT$applicationURI)
@@ -35,7 +34,7 @@ then
             exit 1;
     fi;
 
-else
-        echo "The Service does not have a NodePort"
-        exit 1;
-fi;
+# else
+#         echo "The Service does not have a NodePort"
+#         exit 1;
+# fi;
