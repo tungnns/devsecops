@@ -70,7 +70,7 @@ pipeline {
     serviceName = "devsecops-svc"
     imageName = "tungnns/numeric-app:${GIT_COMMIT}"
     applicationURL="http://numeric.example.com"
-    applicationURI="/increment/99"
+    applicationURI="/compare/49"
     GIT_TOKEN = credentials('git-token')
     ARGOCD_TOKEN = credentials('argocd-token')
   }
