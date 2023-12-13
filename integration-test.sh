@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Waiting time for application to be deployed on k8s cluster by argocd
-sleep 200s
+sleep 300s
 
 # PORT=$(kubectl -n default get svc ${serviceName} -o json | jq .spec.ports[].nodePort)
 # PORT=80
