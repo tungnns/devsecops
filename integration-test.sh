@@ -1,19 +1,19 @@
 #!/bin/bash
 
 # Waiting time for application to be deployed on k8s cluster by argocd
-sleep 300s
+sleep 200s
 
 # PORT=$(kubectl -n default get svc ${serviceName} -o json | jq .spec.ports[].nodePort)
-PORT=80
+# PORT=80
 
-echo $PORT
-echo $applicationURL:$PORT/$applicationURI
+# echo $PORT
+echo $applicationURL/$applicationURI
 
 # if [[ ! -z "$PORT" ]];
 # then
 
-    response=$(curl $applicationURL:$PORT$applicationURI)
-    http_code=$(curl -o /dev/null -w "%{http_code}" $applicationURL:$PORT$applicationURI)
+    response=$(curl $applicationURL$applicationURI)
+    http_code=$(curl -o /dev/null -w "%{http_code}" $applicationURL$applicationURI)
 
     echo $response
     echo $http_code
