@@ -21,4 +21,4 @@ These are the code files from the [DevSecOps course](https://kodekloud.com/cours
 
 `curl node-service-ip:5000/plusone/99`
 
-test webhook 1
+test sudoer passwordless on jenkins agent
