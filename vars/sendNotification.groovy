@@ -75,11 +75,11 @@ def call(String buildStatus = 'STARTED') {
             [
               "type": "mrkdwn",
               "text": "*Kubernetes Deployment Name:*\n${deploymentName}"
-            ],
-            [
-              "type": "mrkdwn",
-              "text": "*Node Port*\n32564"
             ]
+            // [
+            //   "type": "mrkdwn",
+            //   "text": "*Node Port*\n32564"
+            // ]
           ], 
           "accessory": [
             "type": "image",
@@ -102,7 +102,7 @@ def call(String buildStatus = 'STARTED') {
               "emoji": true
             ],
             "value": "click_me_123",
-            "url": "${applicationURL}:32564",
+            "url": "${applicationURL}",
             "action_id": "button-action"
           ]
         ],
