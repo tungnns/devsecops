@@ -42,21 +42,6 @@ List<Map> getFailedStages( RunWrapper build ) {
 pipeline {
   agent {
     label 'jenkins-agent-docker'
-    // kubernetes {
-    //   yaml '''
-    //     apiVersion: v1
-    //     kind: Pod
-    //     spec:
-    //       containers:
-    //       - name: maven
-    //         image: maven:3.8.6-openjdk-11-slim
-    //         command:
-    //           - sleep
-    //         args:
-    //           - 99d
-    //         tty: true          
-    //     '''
-    // }
   }
 
   tools {
@@ -110,22 +95,6 @@ pipeline {
         }
       }
     }
-
-    // stage('Vulnerability Scan - Docker') {
-    //   steps {
-    //     parallel(
-    //       "Dependency Scan": {
-    //           sh "mvn dependency-check:check"
-    //       },
-    //       "Trivy Scan":{
-    //           sh "bash trivy-docker-image-scan.sh"
-    //       },
-    //       "OPA Conftest":{
-    //           sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-docker-security.rego Dockerfile'     
-    //       }       
-    //     )
-    //   }
-    // }
 
     stage('Vulnerability Scan - Docker') {
         steps {
@@ -332,18 +301,6 @@ pipeline {
   //       }
   //     }
   //   }   
-   
-  //     stage('Testing Slack - 1') {
-  //     steps {
-  //         sh 'exit 0'
-  //     }
-  //   }
-
-  //  stage('Testing Slack - Error Stage') {
-  //     steps {
-  //         sh 'exit 0'
-  //     }
-  //   }
 
   }
 
@@ -358,25 +315,5 @@ pipeline {
            // //Use sendNotifications.groovy from shared library and provide current build result as parameter 
           sendNotification currentBuild.result
         }
-
-        // success {
-        //     script {
-        //         /* Use slackNotifier.groovy from shared library and provide current build result as parameter */  
-        //         env.failedStage = "none"
-        //         env.emoji = ":white_check_mark: :tada: :thumbsup_all:" 
-        //         sendNotification currentBuild.result
-        //       }
-        // }
-
-        // failure {
-        //   script {
-        //     //Fetch information about  failed stage
-        //     def failedStages = getFailedStages( currentBuild )
-        //       env.failedStage = failedStages.failedStageName
-        //       env.emoji = ":x: :red_circle: :sos:"
-        //     sendNotification currentBuild.result
-        //   }    
-        // }
     }
-
 }
